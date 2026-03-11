@@ -45,6 +45,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.taskmanager.ui.components.AddEditTaskDialog
 import com.example.taskmanager.ui.components.TopBar
 import com.example.taskmanager.ui.screens.ManageTasksScreen
 import com.example.taskmanager.ui.screens.TaskListScreen
@@ -181,8 +182,7 @@ fun BottomNavGraph(
         ) {
             composable(BottomNavItem.Home.route) {
                 TaskListScreen(
-                    viewModel = viewModel,
-                    onAddClick = { showAddDialog = true }
+                    viewModel = viewModel
                 )
             }
             composable(BottomNavItem.Schedule.route) {
@@ -198,6 +198,17 @@ fun BottomNavGraph(
                 PlaceholderScreen(title = "Profile")
             }
         }
+    }
+
+    // Dialog triggered by persistent TopBar + button
+    if (showAddDialog) {
+        AddEditTaskDialog(
+            onDismiss = { showAddDialog = false },
+            onSave = { task ->
+                viewModel.insert(task)
+                showAddDialog = false
+            }
+        )
     }
 }
 

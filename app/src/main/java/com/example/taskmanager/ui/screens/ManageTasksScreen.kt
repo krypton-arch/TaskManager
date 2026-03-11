@@ -29,7 +29,6 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -50,6 +49,7 @@ import com.example.taskmanager.ui.components.ScheduleTaskBlock
 import com.example.taskmanager.ui.components.WeekCalendarRow
 import com.example.taskmanager.ui.theme.CardGreen
 import com.example.taskmanager.ui.theme.CardWhite
+import com.example.taskmanager.ui.theme.ChipBackground
 import com.example.taskmanager.ui.theme.DarkSurface
 import com.example.taskmanager.ui.theme.LimeGreen
 import com.example.taskmanager.ui.theme.MutedText
@@ -72,23 +72,10 @@ fun ManageTasksScreen(
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var showAddDialog by remember { mutableStateOf(false) }
 
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddDialog = true },
-                containerColor = LimeGreen,
-                contentColor = DarkSurface,
-                shape = CircleShape
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add task")
-            }
-        },
-        containerColor = Color.Transparent
-    ) { innerPadding ->
+    Box(modifier = modifier.fillMaxSize()) {
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
             // Header
@@ -215,7 +202,7 @@ fun ManageTasksScreen(
                                 modifier = Modifier
                                     .weight(1f)
                                     .height(1.dp)
-                                    .background(Color(0xFFE8E8E8))
+                                    .background(ChipBackground)
                             )
                         }
                     }
@@ -223,6 +210,18 @@ fun ManageTasksScreen(
             }
 
             Spacer(modifier = Modifier.height(80.dp))
+        }
+
+        FloatingActionButton(
+            onClick = { showAddDialog = true },
+            containerColor = LimeGreen,
+            contentColor = DarkSurface,
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(Spacing.lg)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add task")
         }
     }
 

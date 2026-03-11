@@ -63,7 +63,6 @@ import com.example.taskmanager.viewmodel.TaskViewModel
 @Composable
 fun TaskListScreen(
     viewModel: TaskViewModel,
-    onAddClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
