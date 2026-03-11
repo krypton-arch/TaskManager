@@ -46,15 +46,22 @@ private val DarkColorScheme = darkColorScheme(
 @Composable
 fun TaskmanagerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    themePreference: String = "System",
     content: @Composable () -> Unit
 ) {
+    val useDarkTheme = when (themePreference) {
+        "Light" -> false
+        "Dark" -> true
+        else -> darkTheme  // "System" falls through to isSystemInDarkTheme()
+    }
+
     val colorScheme = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context)
+            if (useDarkTheme) dynamicDarkColorScheme(context)
             else dynamicLightColorScheme(context)
         }
-        darkTheme -> DarkColorScheme
+        useDarkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
 

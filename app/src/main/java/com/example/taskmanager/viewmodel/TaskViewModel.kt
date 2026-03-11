@@ -66,6 +66,16 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
         }
     }
 
+    fun deleteAllTasks() {
+        viewModelScope.launch {
+            try {
+                repository.deleteAllTasks()
+            } catch (e: Exception) {
+                // Error handled via uiState flow
+            }
+        }
+    }
+
     class Factory(private val repository: TaskRepository) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(TaskViewModel::class.java)) {

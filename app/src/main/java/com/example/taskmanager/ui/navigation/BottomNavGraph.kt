@@ -48,6 +48,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.taskmanager.ui.components.AddEditTaskDialog
 import com.example.taskmanager.ui.components.TopBar
 import com.example.taskmanager.ui.screens.ManageTasksScreen
+import com.example.taskmanager.ui.screens.ProfileScreen
+import com.example.taskmanager.ui.screens.StatisticsScreen
 import com.example.taskmanager.ui.screens.TaskListScreen
 import com.example.taskmanager.ui.theme.DarkSurface
 import com.example.taskmanager.ui.theme.MutedText
@@ -55,6 +57,7 @@ import com.example.taskmanager.ui.theme.OffWhiteBackground
 import com.example.taskmanager.ui.theme.Spacing
 import com.example.taskmanager.ui.theme.TaskmanagerTheme
 import com.example.taskmanager.viewmodel.TaskViewModel
+import com.example.taskmanager.viewmodel.UserPreferencesViewModel
 
 sealed class BottomNavItem(
     val route: String,
@@ -76,7 +79,8 @@ val bottomNavItems = listOf(
 
 @Composable
 fun BottomNavGraph(
-    viewModel: TaskViewModel
+    viewModel: TaskViewModel,
+    userPrefsViewModel: UserPreferencesViewModel
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -87,7 +91,6 @@ fun BottomNavGraph(
     Scaffold(
         containerColor = OffWhiteBackground,
         topBar = {
-            // Persistent TopBar across ALL screens
             TopBar(onAddClick = { showAddDialog = true })
         },
         bottomBar = {
@@ -181,9 +184,7 @@ fun BottomNavGraph(
             }
         ) {
             composable(BottomNavItem.Home.route) {
-                TaskListScreen(
-                    viewModel = viewModel
-                )
+                TaskListScreen(viewModel = viewModel)
             }
             composable(BottomNavItem.Schedule.route) {
                 ManageTasksScreen(
@@ -192,15 +193,17 @@ fun BottomNavGraph(
                 )
             }
             composable(BottomNavItem.Stats.route) {
-                PlaceholderScreen(title = "Statistics")
+                StatisticsScreen(viewModel = viewModel)
             }
             composable(BottomNavItem.Profile.route) {
-                PlaceholderScreen(title = "Profile")
+                ProfileScreen(
+                    taskViewModel = viewModel,
+                    prefsViewModel = userPrefsViewModel
+                )
             }
         }
     }
 
-    // Dialog triggered by persistent TopBar + button
     if (showAddDialog) {
         AddEditTaskDialog(
             onDismiss = { showAddDialog = false },
@@ -212,26 +215,13 @@ fun BottomNavGraph(
     }
 }
 
-@Composable
-private fun PlaceholderScreen(title: String) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = title,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = DarkSurface
-        )
-    }
-}
-
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO, name = "Light")
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Dark")
 @Composable
-private fun PlaceholderScreenPreview() {
+private fun PlaceholderPreview() {
     TaskmanagerTheme {
-        PlaceholderScreen(title = "Statistics")
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Preview", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = DarkSurface)
+        }
     }
 }
