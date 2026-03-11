@@ -1,6 +1,17 @@
 # 📋 Task Manager
 
+![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-blue.svg?style=flat&logo=kotlin)
+![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-M3-green.svg)
+![Architecture](https://img.shields.io/badge/Architecture-MVVM-orange.svg)
+![Room Database](https://img.shields.io/badge/Database-Room-blue)
+![DataStore](https://img.shields.io/badge/Preferences-DataStore-lightgrey)
+
 A clean, modern **Personal Task Manager** Android app built with **Kotlin** and **Jetpack Compose**. Add, view, update, and delete daily tasks with a beautiful pastel-accented UI, powered by **Room Database** and **MVVM** architecture.
+
+## 📥 Download
+[**Download the latest APK here**](./TaskManager-debug.apk)
+
+*Note: The standalone debug APK for Android devices is available directly in the root of the repository as `TaskManager-debug.apk`.*
 
 ---
 
@@ -11,19 +22,14 @@ A clean, modern **Personal Task Manager** Android app built with **Kotlin** and 
 - **Task Schedule** — Horizontal week calendar + vertical timeline with colored pill task blocks
 - **Status Tracking** — Filter tasks by status: *In progress*, *In review*, *On hold*, *Done*
 - **Priority System** — High / Medium / Low priority with lime-green badge indicators
+- **Real-time Statistics** — Dedicated analytics screen calculating total, pending, completed tasks, and week-over-week growth indicators
+- **User Profile & Customization** — Personalize the app with custom avatar colors and dynamic Light/Dark/System theme toggles using **Jetpack DataStore**
 - **Dark Bottom Navigation** — 4-tab nav bar with pill-highlight on selected icon
 - **Reactive UI** — Real-time updates powered by `StateFlow` + Room's `Flow` 
 - **Local Persistence** — All data persisted via Room Database
 
 ---
 
-## 📸 Screenshots
-
-| Task List | Task Schedule |
-|-----------|--------------|
-| Greeting hero + dark next-task card + status chips + alternating task cards | Week calendar with LimeGreen selected date + colored timeline blocks |
-
----
 
 ## 🏗️ Architecture
 
@@ -51,32 +57,37 @@ MVVM (Model–View–ViewModel)
 
 ```
 app/src/main/java/com/example/taskmanager/
+├── MainActivity.kt                # Entry point
 ├── data/
 │   ├── Task.kt                    # Room Entity
 │   ├── TaskDao.kt                 # Data Access Object
 │   ├── TaskDatabase.kt            # Room Database (Singleton)
-│   └── TaskRepository.kt          # Repository pattern
-├── viewmodel/
-│   └── TaskViewModel.kt           # StateFlow + CRUD operations
+│   ├── TaskRepository.kt          # Repository pattern
+│   └── UserPreferencesRepository.kt # DataStore preferences repository
 ├── ui/
-│   ├── theme/
-│   │   ├── Color.kt               # 11 design tokens
-│   │   ├── Type.kt                # Custom typography scale
-│   │   └── Theme.kt               # Material 3 light theme
-│   ├── screens/
-│   │   ├── TaskListScreen.kt      # Main task list
-│   │   └── ManageTasksScreen.kt   # Schedule timeline
 │   ├── components/
-│   │   ├── TopBar.kt              # Avatar + title + action buttons
-│   │   ├── TaskCard.kt            # Alternating color task cards
-│   │   ├── ScheduleTaskBlock.kt   # Timeline pill blocks
-│   │   ├── WeekCalendarRow.kt     # Horizontal week calendar
-│   │   ├── StatusChip.kt          # Status filter chips
+│   │   ├── AddEditTaskDialog.kt   # Add/Edit task dialog
 │   │   ├── AvatarRow.kt           # Team member avatars
-│   │   └── AddEditTaskDialog.kt   # Add/Edit task dialog
-│   └── navigation/
-│       └── BottomNavGraph.kt      # Bottom nav + NavHost
-└── MainActivity.kt                # Entry point
+│   │   ├── ScheduleTaskBlock.kt   # Timeline pill blocks
+│   │   ├── StatusChip.kt          # Status filter chips
+│   │   ├── TaskCard.kt            # Alternating color task cards
+│   │   ├── TopBar.kt              # Avatar + title + action buttons
+│   │   └── WeekCalendarRow.kt     # Horizontal week calendar
+│   ├── navigation/
+│   │   └── BottomNavGraph.kt      # Bottom nav + NavHost
+│   ├── screens/
+│   │   ├── ManageTasksScreen.kt   # Schedule timeline screen
+│   │   ├── ProfileScreen.kt       # User profile and customization 
+│   │   ├── StatisticsScreen.kt    # Dynamic analytics screen
+│   │   └── TaskListScreen.kt      # Main task list screen
+│   └── theme/
+│       ├── Color.kt               # 11 design tokens
+│       ├── Spacing.kt             # Padding and margin dimensions
+│       ├── Theme.kt               # Dynamic light/dark theme handling
+│       └── Type.kt                # Custom typography scale
+└── viewmodel/
+    ├── TaskViewModel.kt           # StateFlow + CRUD operations
+    └── UserPreferencesViewModel.kt# StateFlow + DataStore preferences
 ```
 
 ---
