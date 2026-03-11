@@ -1,5 +1,6 @@
 package com.example.taskmanager.ui.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,12 +17,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.taskmanager.ui.theme.DarkSurface
+import com.example.taskmanager.ui.theme.LimeGreen
+import com.example.taskmanager.ui.theme.Spacing
+import com.example.taskmanager.ui.theme.TaskmanagerTheme
 
 @Composable
 fun ScheduleTaskBlock(
@@ -30,7 +37,7 @@ fun ScheduleTaskBlock(
     count: Int = 0,
     blockColor: Color,
     textColor: Color = Color.White,
-    height: Dp = 56.dp,
+    height: Dp = 52.dp,
     widthFraction: Float = 1f,
     modifier: Modifier = Modifier
 ) {
@@ -40,7 +47,8 @@ fun ScheduleTaskBlock(
             .height(height)
             .clip(RoundedCornerShape(50))
             .background(blockColor)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = Spacing.md)
+            .semantics { contentDescription = "$title, $timeLabel" },
         contentAlignment = Alignment.CenterStart
     ) {
         Row(
@@ -50,7 +58,7 @@ fun ScheduleTaskBlock(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
@@ -79,7 +87,6 @@ fun ScheduleTaskBlock(
                 }
             }
 
-            // Time pill
             Text(
                 text = timeLabel,
                 fontSize = 10.sp,
@@ -88,8 +95,23 @@ fun ScheduleTaskBlock(
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
                     .background(DarkSurface)
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                    .padding(horizontal = 10.dp, vertical = Spacing.xxs)
             )
         }
+    }
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO, name = "Light")
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Dark")
+@Composable
+private fun ScheduleTaskBlockPreview() {
+    TaskmanagerTheme {
+        ScheduleTaskBlock(
+            title = "Design registration process",
+            timeLabel = "10AM-1PM",
+            count = 3,
+            blockColor = LimeGreen,
+            modifier = Modifier.padding(16.dp)
+        )
     }
 }

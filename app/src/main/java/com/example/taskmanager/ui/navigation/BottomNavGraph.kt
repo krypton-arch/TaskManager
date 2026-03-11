@@ -1,5 +1,12 @@
 package com.example.taskmanager.ui.navigation
 
+import android.content.res.Configuration
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,12 +27,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -34,11 +45,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.taskmanager.ui.components.TopBar
 import com.example.taskmanager.ui.screens.ManageTasksScreen
 import com.example.taskmanager.ui.screens.TaskListScreen
 import com.example.taskmanager.ui.theme.DarkSurface
 import com.example.taskmanager.ui.theme.MutedText
 import com.example.taskmanager.ui.theme.OffWhiteBackground
+import com.example.taskmanager.ui.theme.Spacing
+import com.example.taskmanager.ui.theme.TaskmanagerTheme
 import com.example.taskmanager.viewmodel.TaskViewModel
 
 sealed class BottomNavItem(
@@ -67,8 +81,14 @@ fun BottomNavGraph(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
+    var showAddDialog by remember { mutableStateOf(false) }
+
     Scaffold(
         containerColor = OffWhiteBackground,
+        topBar = {
+            // Persistent TopBar across ALL screens
+            TopBar(onAddClick = { showAddDialog = true })
+        },
         bottomBar = {
             NavigationBar(
                 containerColor = DarkSurface,
@@ -99,14 +119,14 @@ fun BottomNavGraph(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(50))
                                         .background(Color.White.copy(alpha = 0.15f))
-                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                        .padding(horizontal = Spacing.md, vertical = Spacing.xs),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         imageVector = item.icon,
                                         contentDescription = item.label,
                                         tint = Color.White,
-                                        modifier = Modifier.size(22.dp)
+                                        modifier = Modifier.size(24.dp)
                                     )
                                 }
                             } else {
@@ -114,7 +134,7 @@ fun BottomNavGraph(
                                     imageVector = item.icon,
                                     contentDescription = item.label,
                                     tint = MutedText,
-                                    modifier = Modifier.size(22.dp)
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
                         },
@@ -129,10 +149,41 @@ fun BottomNavGraph(
         NavHost(
             navController = navController,
             startDestination = BottomNavItem.Home.route,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            enterTransition = {
+                fadeIn(animationSpec = tween(250, easing = FastOutSlowInEasing)) +
+                        slideInHorizontally(
+                            initialOffsetX = { it / 8 },
+                            animationSpec = tween(250)
+                        )
+            },
+            exitTransition = {
+                fadeOut(animationSpec = tween(200)) +
+                        slideOutHorizontally(
+                            targetOffsetX = { -it / 8 },
+                            animationSpec = tween(200)
+                        )
+            },
+            popEnterTransition = {
+                fadeIn(animationSpec = tween(250, easing = FastOutSlowInEasing)) +
+                        slideInHorizontally(
+                            initialOffsetX = { -it / 8 },
+                            animationSpec = tween(250)
+                        )
+            },
+            popExitTransition = {
+                fadeOut(animationSpec = tween(200)) +
+                        slideOutHorizontally(
+                            targetOffsetX = { it / 8 },
+                            animationSpec = tween(200)
+                        )
+            }
         ) {
             composable(BottomNavItem.Home.route) {
-                TaskListScreen(viewModel = viewModel)
+                TaskListScreen(
+                    viewModel = viewModel,
+                    onAddClick = { showAddDialog = true }
+                )
             }
             composable(BottomNavItem.Schedule.route) {
                 ManageTasksScreen(
@@ -162,5 +213,14 @@ private fun PlaceholderScreen(title: String) {
             fontWeight = FontWeight.Bold,
             color = DarkSurface
         )
+    }
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO, name = "Light")
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Dark")
+@Composable
+private fun PlaceholderScreenPreview() {
+    TaskmanagerTheme {
+        PlaceholderScreen(title = "Statistics")
     }
 }

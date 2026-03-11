@@ -1,5 +1,6 @@
 package com.example.taskmanager.ui.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -16,12 +17,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.taskmanager.ui.theme.CardGreen
 import com.example.taskmanager.ui.theme.CardYellow
 import com.example.taskmanager.ui.theme.ChipBackground
 import com.example.taskmanager.ui.theme.DarkSurface
 import com.example.taskmanager.ui.theme.PurpleAccent
+import com.example.taskmanager.ui.theme.TaskmanagerTheme
 
 private val avatarColors = listOf(PurpleAccent, CardGreen, CardYellow)
 
@@ -31,7 +36,7 @@ fun AvatarRow(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier,
+        modifier = modifier.semantics { contentDescription = "$count team members" },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
     ) {
@@ -63,5 +68,14 @@ fun AvatarRow(
                 modifier = Modifier.size(14.dp)
             )
         }
+    }
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO, name = "Light")
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Dark")
+@Composable
+private fun AvatarRowPreview() {
+    TaskmanagerTheme {
+        AvatarRow(count = 3)
     }
 }

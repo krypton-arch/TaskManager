@@ -1,5 +1,6 @@
 package com.example.taskmanager.ui.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,14 +28,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.taskmanager.data.Task
 import com.example.taskmanager.ui.theme.DarkSurface
-import com.example.taskmanager.ui.theme.LimeGreen
 import com.example.taskmanager.ui.theme.MutedText
 import com.example.taskmanager.ui.theme.PurpleAccent
+import com.example.taskmanager.ui.theme.Spacing
+import com.example.taskmanager.ui.theme.TaskmanagerTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,17 +56,21 @@ fun AddEditTaskDialog(
 
     var priorityExpanded by remember { mutableStateOf(false) }
     var statusExpanded by remember { mutableStateOf(false) }
+    var showTitleError by remember { mutableStateOf(false) }
 
     val priorities = listOf("High", "Medium", "Low")
     val statuses = listOf("In progress", "In review", "On hold", "Done")
 
+    val isSaveEnabled = title.isNotBlank()
+
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(20.dp),
-            color = Color.White
+            color = Color.White,
+            modifier = Modifier.padding(horizontal = Spacing.lg)
         ) {
             Column(
-                modifier = Modifier.padding(24.dp)
+                modifier = Modifier.padding(Spacing.xl)
             ) {
                 Text(
                     text = if (isEditing) "Edit Task" else "Add Task",
@@ -72,22 +79,30 @@ fun AddEditTaskDialog(
                     color = DarkSurface
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(Spacing.lg))
 
                 OutlinedTextField(
                     value = title,
-                    onValueChange = { title = it },
+                    onValueChange = {
+                        title = it
+                        if (it.isNotBlank()) showTitleError = false
+                    },
                     label = { Text("Title") },
                     singleLine = true,
+                    isError = showTitleError,
+                    supportingText = if (showTitleError) {
+                        { Text("Title cannot be empty", color = Color.Red, fontSize = 12.sp) }
+                    } else null,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = PurpleAccent,
-                        cursorColor = DarkSurface
+                        cursorColor = DarkSurface,
+                        errorBorderColor = Color.Red
                     )
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(Spacing.md))
 
                 OutlinedTextField(
                     value = description,
@@ -102,11 +117,11 @@ fun AddEditTaskDialog(
                     )
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(Spacing.md))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
                 ) {
                     OutlinedTextField(
                         value = dueDate,
@@ -136,7 +151,7 @@ fun AddEditTaskDialog(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(Spacing.md))
 
                 // Priority dropdown
                 ExposedDropdownMenuBox(
@@ -174,7 +189,7 @@ fun AddEditTaskDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(Spacing.md))
 
                 // Status dropdown
                 ExposedDropdownMenuBox(
@@ -212,7 +227,7 @@ fun AddEditTaskDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(Spacing.lg))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -223,7 +238,9 @@ fun AddEditTaskDialog(
                     }
                     Button(
                         onClick = {
-                            if (title.isNotBlank()) {
+                            if (title.isBlank()) {
+                                showTitleError = true
+                            } else {
                                 val newTask = Task(
                                     taskId = task?.taskId ?: 0,
                                     title = title.trim(),
@@ -241,7 +258,7 @@ fun AddEditTaskDialog(
                             contentColor = Color.White
                         ),
                         shape = RoundedCornerShape(12.dp),
-                        enabled = title.isNotBlank()
+                        enabled = isSaveEnabled
                     ) {
                         Text(
                             text = if (isEditing) "Update" else "Add",
@@ -251,5 +268,17 @@ fun AddEditTaskDialog(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO, name = "Light")
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Dark")
+@Composable
+private fun AddEditTaskDialogPreview() {
+    TaskmanagerTheme {
+        AddEditTaskDialog(
+            onDismiss = {},
+            onSave = {}
+        )
     }
 }

@@ -1,5 +1,11 @@
 package com.example.taskmanager.ui.screens
 
+import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.taskmanager.ui.components.AddEditTaskDialog
@@ -47,6 +54,8 @@ import com.example.taskmanager.ui.theme.DarkSurface
 import com.example.taskmanager.ui.theme.LimeGreen
 import com.example.taskmanager.ui.theme.MutedText
 import com.example.taskmanager.ui.theme.PurpleAccent
+import com.example.taskmanager.ui.theme.Spacing
+import com.example.taskmanager.ui.theme.TaskmanagerTheme
 import com.example.taskmanager.viewmodel.TaskViewModel
 import java.time.LocalDate
 
@@ -71,7 +80,7 @@ fun ManageTasksScreen(
                 contentColor = DarkSurface,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Task")
+                Icon(Icons.Default.Add, contentDescription = "Add task")
             }
         },
         containerColor = Color.Transparent
@@ -86,13 +95,13 @@ fun ManageTasksScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                    .padding(horizontal = Spacing.lg, vertical = Spacing.sm),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
                 ) {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -105,7 +114,8 @@ fun ManageTasksScreen(
                         text = "Task schedule",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = DarkSurface
+                        color = DarkSurface,
+                        letterSpacing = (-0.25).sp
                     )
                 }
 
@@ -114,15 +124,15 @@ fun ManageTasksScreen(
                     modifier = Modifier
                         .clip(RoundedCornerShape(50))
                         .background(DarkSurface)
-                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                        .padding(horizontal = Spacing.sm, vertical = Spacing.xs)
                 ) {
                     Icon(
                         Icons.Outlined.CalendarMonth,
-                        contentDescription = null,
+                        contentDescription = "Toggle calendar",
                         tint = Color.White,
                         modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(Spacing.xxs))
                     Text(
                         text = "Calendar",
                         fontSize = 12.sp,
@@ -132,7 +142,7 @@ fun ManageTasksScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(Spacing.md))
 
             // Week Calendar
             WeekCalendarRow(
@@ -140,7 +150,7 @@ fun ManageTasksScreen(
                 onDateSelected = { selectedDate = it }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(Spacing.lg))
 
             // Timeline
             val hours = listOf("08 AM", "09 AM", "10 AM", "11 AM", "12 PM", "01 PM", "02 PM", "03 PM", "04 PM", "05 PM")
@@ -148,13 +158,13 @@ fun ManageTasksScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
+                    .padding(horizontal = Spacing.lg)
             ) {
                 hours.forEachIndexed { hourIndex, hour ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(72.dp),
+                            .height(76.dp),
                         verticalAlignment = Alignment.Top
                     ) {
                         // Time label
@@ -162,10 +172,12 @@ fun ManageTasksScreen(
                             text = hour,
                             fontSize = 11.sp,
                             color = MutedText,
-                            modifier = Modifier.width(50.dp)
+                            modifier = Modifier
+                                .width(52.dp)
+                                .padding(end = Spacing.sm)
                         )
 
-                        // Task block slot
+                        // Task block slot with staggered animation
                         if (hourIndex < tasks.size) {
                             val task = tasks[hourIndex]
                             val color = scheduleColors[hourIndex % scheduleColors.size]
@@ -174,19 +186,34 @@ fun ManageTasksScreen(
                                 else -> Color.White
                             }
 
-                            ScheduleTaskBlock(
-                                title = task.title,
-                                timeLabel = if (task.dueTime.isNotEmpty()) task.dueTime else hour,
-                                count = (hourIndex % 4) + 1,
-                                blockColor = color,
-                                textColor = textColor,
-                                widthFraction = if (hourIndex % 3 == 0) 1f else 0.85f
-                            )
+                            val visible = remember {
+                                MutableTransitionState(false).apply { targetState = true }
+                            }
+
+                            AnimatedVisibility(
+                                visibleState = visible,
+                                enter = fadeIn(tween(250, delayMillis = hourIndex * 60)) +
+                                        slideInHorizontally(
+                                            initialOffsetX = { -40 },
+                                            animationSpec = tween(250, delayMillis = hourIndex * 60)
+                                        ),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(end = Spacing.md)
+                            ) {
+                                ScheduleTaskBlock(
+                                    title = task.title,
+                                    timeLabel = if (task.dueTime.isNotEmpty()) task.dueTime else hour,
+                                    count = (hourIndex % 4) + 1,
+                                    blockColor = color,
+                                    textColor = textColor,
+                                    widthFraction = if (hourIndex % 3 == 0) 1f else 0.85f
+                                )
+                            }
                         } else {
-                            // Empty slot line
                             Box(
                                 modifier = Modifier
-                                    .fillMaxWidth()
+                                    .weight(1f)
                                     .height(1.dp)
                                     .background(Color(0xFFE8E8E8))
                             )
@@ -207,5 +234,14 @@ fun ManageTasksScreen(
                 showAddDialog = false
             }
         )
+    }
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO, name = "Light")
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, name = "Dark")
+@Composable
+private fun ManageTasksScreenHeaderPreview() {
+    TaskmanagerTheme {
+        Text("Task schedule", fontSize = 24.sp, fontWeight = FontWeight.Bold)
     }
 }
