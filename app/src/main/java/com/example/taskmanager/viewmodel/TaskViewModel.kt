@@ -1,16 +1,22 @@
 package com.example.taskmanager.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.taskmanager.data.Task
 import com.example.taskmanager.data.TaskRepository
+import com.example.taskmanager.notification.TaskReminderManager
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed class TaskUiState {
     data object Loading : TaskUiState()
@@ -18,10 +24,36 @@ sealed class TaskUiState {
     data class Error(val message: String) : TaskUiState()
 }
 
-class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
+@HiltViewModel
+class TaskViewModel @Inject constructor(
+    private val repository: TaskRepository,
+    private val reminderManager: TaskReminderManager
+) : ViewModel() {
 
-    val uiState: StateFlow<TaskUiState> = repository.allTasks
-        .map<List<Task>, TaskUiState> { TaskUiState.Success(it) }
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery = _searchQuery.asStateFlow()
+
+    private val _selectedStatus = MutableStateFlow<String?>(null)
+    val selectedStatus = _selectedStatus.asStateFlow()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val _tasks = _searchQuery
+        .flatMapLatest { query ->
+            if (query.isEmpty()) {
+                repository.allTasks
+            } else {
+                repository.searchTasks(query)
+            }
+        }
+
+    val uiState: StateFlow<TaskUiState> = combine(_tasks, _selectedStatus) { tasks, status ->
+        val filteredTasks = if (status == null) {
+            tasks
+        } else {
+            tasks.filter { it.status == status }
+        }
+        TaskUiState.Success(filteredTasks) as TaskUiState
+    }
         .catch { emit(TaskUiState.Error(it.message ?: "Unknown error")) }
         .stateIn(
             scope = viewModelScope,
@@ -36,10 +68,20 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
             initialValue = emptyList()
         )
 
+    fun onSearchQueryChange(newQuery: String) {
+        _searchQuery.value = newQuery
+    }
+
+    fun onStatusFilterChange(status: String?) {
+        _selectedStatus.value = if (_selectedStatus.value == status) null else status
+    }
+
     fun insert(task: Task) {
         viewModelScope.launch {
             try {
-                repository.insert(task)
+                val rowId = repository.insert(task)
+                // Schedule reminder for the new task using the generated ID
+                reminderManager.scheduleReminder(task.copy(taskId = rowId.toInt()))
             } catch (e: Exception) {
                 // Error handled via uiState flow
             }
@@ -50,6 +92,8 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
         viewModelScope.launch {
             try {
                 repository.update(task)
+                // Update reminder
+                reminderManager.scheduleReminder(task)
             } catch (e: Exception) {
                 // Error handled via uiState flow
             }
@@ -60,6 +104,7 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
         viewModelScope.launch {
             try {
                 repository.delete(task)
+                reminderManager.cancelReminder(task.taskId)
             } catch (e: Exception) {
                 // Error handled via uiState flow
             }
@@ -73,16 +118,6 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
             } catch (e: Exception) {
                 // Error handled via uiState flow
             }
-        }
-    }
-
-    class Factory(private val repository: TaskRepository) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(TaskViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return TaskViewModel(repository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }

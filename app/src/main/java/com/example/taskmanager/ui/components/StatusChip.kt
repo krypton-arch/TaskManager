@@ -47,7 +47,7 @@ fun StatusChip(
     val shape = RoundedCornerShape(50)
 
     val animatedColor by animateColorAsState(
-        targetValue = if (isSelected) chipColor else if (isOutlined) Color.Transparent else chipColor,
+        targetValue = if (isSelected) chipColor else if (isOutlined) Color.Transparent else chipColor.copy(alpha = 0.3f),
         animationSpec = tween(200),
         label = "chipColor"
     )
@@ -78,19 +78,21 @@ fun StatusChip(
             fontWeight = FontWeight.SemiBold,
             color = if (isOutlined && !isSelected) MutedText else DarkSurface
         )
-        Box(
-            modifier = Modifier
-                .size(20.dp)
-                .clip(CircleShape)
-                .background(DarkSurface),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = count.toString(),
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+        if (count >= 0) {
+            Box(
+                modifier = Modifier
+                    .size(20.dp)
+                    .clip(CircleShape)
+                    .background(DarkSurface),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = count.toString(),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
         }
     }
 }

@@ -1,15 +1,17 @@
 package com.example.taskmanager.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.taskmanager.data.UserPreferencesRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class UserPreferencesViewModel(
+@HiltViewModel
+class UserPreferencesViewModel @Inject constructor(
     private val repository: UserPreferencesRepository
 ) : ViewModel() {
 
@@ -32,15 +34,5 @@ class UserPreferencesViewModel(
 
     fun updateThemePreference(theme: String) {
         viewModelScope.launch { repository.updateThemePreference(theme) }
-    }
-
-    class Factory(private val repository: UserPreferencesRepository) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(UserPreferencesViewModel::class.java)) {
-                @Suppress("UNCHECKED_CAST")
-                return UserPreferencesViewModel(repository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
     }
 }

@@ -1,12 +1,14 @@
 # 📋 Task Manager
 
-![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-blue.svg?style=flat&logo=kotlin)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-blue.svg?style=flat&logo=kotlin)
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-M3-green.svg)
 ![Architecture](https://img.shields.io/badge/Architecture-MVVM-orange.svg)
+![Hilt](https://img.shields.io/badge/DI-Hilt-yellow)
 ![Room Database](https://img.shields.io/badge/Database-Room-blue)
 ![DataStore](https://img.shields.io/badge/Preferences-DataStore-lightgrey)
+![WorkManager](https://img.shields.io/badge/WorkManager-Notifications-red)
 
-A clean, modern **Personal Task Manager** Android app built with **Kotlin** and **Jetpack Compose**. Add, view, update, and delete daily tasks with a beautiful pastel-accented UI, powered by **Room Database** and **MVVM** architecture.
+A clean, modern **Personal Task Manager** Android app built with **Kotlin** and **Jetpack Compose**. Add, view, update, and delete daily tasks with a beautiful pastel-accented UI, powered by **Hilt**, **Room Database**, and **MVVM** architecture.
 
 ## 📥 Download
 [**Download the latest APK here**](./TaskManager-debug.apk)
@@ -17,24 +19,22 @@ A clean, modern **Personal Task Manager** Android app built with **Kotlin** and 
 
 ## ✨ Features
 
-- **Task CRUD** — Create, read, update, and delete tasks with a polished dialog UI
-- **Task List** — Beautiful alternating-color task cards (purple, white, green) with priority badges
-- **Task Schedule** — Horizontal week calendar + vertical timeline with colored pill task blocks
-- **Status Tracking** — Filter tasks by status: *In progress*, *In review*, *On hold*, *Done*
-- **Priority System** — High / Medium / Low priority with lime-green badge indicators
-- **Real-time Statistics** — Dedicated analytics screen calculating total, pending, completed tasks, and week-over-week growth indicators
-- **User Profile & Customization** — Personalize the app with custom avatar colors and dynamic Light/Dark/System theme toggles using **Jetpack DataStore**
-- **Dark Bottom Navigation** — 4-tab nav bar with pill-highlight on selected icon
-- **Reactive UI** — Real-time updates powered by `StateFlow` + Room's `Flow` 
-- **Local Persistence** — All data persisted via Room Database
+- **Dependency Injection** — Fully migrated to **Hilt** for robust and scalable dependency management.
+- **Search & Filter** — Quickly find tasks using the real-time search bar or filter by status (*In progress*, *In review*, *On hold*).
+- **Task Reminders** — Background notifications powered by **WorkManager** to ensure you never miss a deadline.
+- **Task CRUD** — Create, read, update, and delete tasks with a polished dialog UI.
+- **Task List** — Beautiful alternating-color task cards with priority badges.
+- **Task Schedule** — Horizontal week calendar + vertical timeline with colored pill task blocks.
+- **Real-time Statistics** — Dedicated analytics screen calculating total, pending, completed tasks, and performance growth.
+- **User Profile & Customization** — Personalize avatar colors and dynamic Light/Dark/System theme toggles.
+- **Testing Suite** — Integrated **MockK** and **Turbine** for comprehensive unit and Flow testing.
 
 ---
-
 
 ## 🏗️ Architecture
 
 ```
-MVVM (Model–View–ViewModel)
+MVVM (Model–View–ViewModel) + Clean Architecture Principles
 ```
 
 ```
@@ -44,7 +44,7 @@ MVVM (Model–View–ViewModel)
 │  (Jetpack Compose + Material 3)                  │
 ├─────────────────────────────────────────────────┤
 │                ViewModel Layer                   │
-│  TaskViewModel (StateFlow + viewModelScope)      │
+│  TaskViewModel (StateFlow + Hilt)                │
 ├─────────────────────────────────────────────────┤
 │                  Data Layer                      │
 │  Repository → DAO → Room Database                │
@@ -57,37 +57,27 @@ MVVM (Model–View–ViewModel)
 
 ```
 app/src/main/java/com/example/taskmanager/
+├── TaskApplication.kt             # Hilt Application class
 ├── MainActivity.kt                # Entry point
+├── di/                            # Dependency Injection modules
 ├── data/
 │   ├── Task.kt                    # Room Entity
 │   ├── TaskDao.kt                 # Data Access Object
-│   ├── TaskDatabase.kt            # Room Database (Singleton)
+│   ├── TaskDatabase.kt            # Room Database
 │   ├── TaskRepository.kt          # Repository pattern
-│   └── UserPreferencesRepository.kt # DataStore preferences repository
+│   └── UserPreferencesRepository.kt # DataStore preferences
+├── notification/
+│   ├── NotificationHelper.kt      # Notification builder
+│   ├── TaskReminderManager.kt     # WorkManager scheduler
+│   └── TaskReminderWorker.kt      # Background worker
 ├── ui/
-│   ├── components/
-│   │   ├── AddEditTaskDialog.kt   # Add/Edit task dialog
-│   │   ├── AvatarRow.kt           # Team member avatars
-│   │   ├── ScheduleTaskBlock.kt   # Timeline pill blocks
-│   │   ├── StatusChip.kt          # Status filter chips
-│   │   ├── TaskCard.kt            # Alternating color task cards
-│   │   ├── TopBar.kt              # Avatar + title + action buttons
-│   │   └── WeekCalendarRow.kt     # Horizontal week calendar
-│   ├── navigation/
-│   │   └── BottomNavGraph.kt      # Bottom nav + NavHost
-│   ├── screens/
-│   │   ├── ManageTasksScreen.kt   # Schedule timeline screen
-│   │   ├── ProfileScreen.kt       # User profile and customization 
-│   │   ├── StatisticsScreen.kt    # Dynamic analytics screen
-│   │   └── TaskListScreen.kt      # Main task list screen
-│   └── theme/
-│       ├── Color.kt               # 11 design tokens
-│       ├── Spacing.kt             # Padding and margin dimensions
-│       ├── Theme.kt               # Dynamic light/dark theme handling
-│       └── Type.kt                # Custom typography scale
+│   ├── components/                # Reusable UI components
+│   ├── navigation/                # Compose Navigation
+│   ├── screens/                   # App screens (Home, Schedule, Stats, Profile)
+│   └── theme/                     # Design tokens and Theme
 └── viewmodel/
-    ├── TaskViewModel.kt           # StateFlow + CRUD operations
-    └── UserPreferencesViewModel.kt# StateFlow + DataStore preferences
+    ├── TaskViewModel.kt           # Search, filter, and CRUD logic
+    └── UserPreferencesViewModel.kt# Theme and profile management
 ```
 
 ---
@@ -98,21 +88,11 @@ app/src/main/java/com/example/taskmanager/
 
 | Token | Hex | Usage |
 |-------|-----|-------|
-| `DarkSurface` | `#1A1A1A` | TopBar buttons, BottomNav, hero card |
-| `OffWhiteBackground` | `#F7F7F7` | App background |
+| `DarkSurface` | `#1A1A1A` | TopBar, BottomNav, Primary buttons |
 | `PurpleAccent` | `#C5B8F5` | Primary task cards, avatar |
-| `LimeGreen` | `#C8E86A` | Selected date, priority badges, FAB |
-| `CardGreen` | `#C8E6C9` | Alternating card color |
-| `CardYellow` | `#FFF9C4` | Accent cards |
-| `CardBlue` | `#B2EBF2` | Accent cards |
-| `MutedText` | `#6B6B6B` | Secondary text |
-
-### Typography
-- **Hero**: ExtraBold, 36sp
-- **Screen titles**: Bold, 24–26sp  
-- **Card titles**: Bold, 18sp
-- **Body**: Normal, 14sp
-- **Labels**: SemiBold, 11–12sp
+| `LimeGreen` | `#C8E86A` | Priority badges, FAB, Success states |
+| `CardYellow` | `#FFF9C4` | Growth analytics accent |
+| `MutedText` | `#6B6B6B` | Secondary information |
 
 ---
 
@@ -120,15 +100,13 @@ app/src/main/java/com/example/taskmanager/
 
 | Component | Technology |
 |-----------|-----------|
-| Language | Kotlin |
+| Language | Kotlin 2.0.21 |
 | UI Framework | Jetpack Compose (Material 3) |
-| Architecture | MVVM |
+| DI | Dagger Hilt |
 | Database | Room |
+| Background Tasks | WorkManager |
+| Testing | MockK, Turbine, JUnit4 |
 | State Management | StateFlow / Flow |
-| Navigation | Navigation Compose |
-| Min SDK | 26 |
-| Target SDK | 36 |
-| Build System | Gradle (Kotlin DSL) |
 
 ---
 
@@ -137,7 +115,7 @@ app/src/main/java/com/example/taskmanager/
 ### Prerequisites
 - Android Studio Ladybug or newer
 - JDK 11+
-- Android SDK 36
+- Android SDK 35
 
 ### Build & Run
 ```bash
